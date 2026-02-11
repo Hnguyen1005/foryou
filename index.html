@@ -80,9 +80,9 @@
       background: currentColor;
     }
     @keyframes floatUp{
-      from { transform: translateY(110vh) rotate(45deg) scale(var(--s)); }
-      to   { transform: translateY(-20vh) rotate(45deg) scale(var(--s)); }
-    }
+  from { transform: translateY(40vh) rotate(45deg) scale(var(--s)); }
+  to   { transform: translateY(-140vh) rotate(45deg) scale(var(--s)); }
+}
 
     /* Main card */
     .wrap{
@@ -109,8 +109,8 @@
       content:"";
       position:absolute;
       inset:-2px;
-      background: radial-gradient(400px 180px at 30% 20%, rgba(255,79,216,.25), transparent 60%),
-                  radial-gradient(400px 180px at 70% 80%, rgba(56,232,255,.18), transparent 60%);
+    background: radial-gradient(1200px 700px at 50% 20%, #2a2a2f 0%, #121216 45%, #07070a 100%),
+            linear-gradient(135deg, #1a1a1f, #0b0b0e);
       z-index:-1;
     }
 
@@ -269,7 +269,6 @@
 
   <main class="wrap">
     <section class="card">
-      <div class="pixel">💾 retro love.exe</div>
       <h1 class="title" id="mainTitle">Will you be my Valentine? 💖</h1>
       <p class="subtitle" id="subTitle">I know we’re miles apart, but you’re still my favorite person. 🌙</p>
 
@@ -309,7 +308,7 @@
       const size = 0.8 + Math.random() * 2.2;
 
       h.style.left = left + 'vw';
-      h.style.bottom = (-10 - Math.random() * 30) + 'vh';
+      h.style.top = (Math.random() * 100) + 'vh';
       h.style.animationDuration = dur + 's';
       h.style.color = heartColors[(Math.random() * heartColors.length) | 0];
       h.style.setProperty('--s', size.toFixed(2));
@@ -321,10 +320,11 @@
     }
 
     // density
-    for (let i = 0; i < 40; i++) {
-      setTimeout(spawnHeart, i * 120);
-    }
-    setInterval(spawnHeart, 220);
+   for (let i = 0; i < 80; i++) {
+  spawnHeart();   // no delay, immediate hearts
+}
+
+setInterval(spawnHeart, 120);  // keeps spawning more
 
     // --- Main interaction ---
     const yesBtn = document.getElementById('yesBtn');
