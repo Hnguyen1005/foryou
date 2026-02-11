@@ -1,1 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Be My Valentine?</title>
+  <style>
+    :root{
+      --bg1:#120018;
+      --bg2:#2a0036;
+      --pink:#ff4fd8;
+      --hot:#ff2a6d;
+      --cyan:#38e8ff;
+      --text:#ffe9fb;
+      --shadow: rgba(0,0,0,.35);
+    }
+
+    *{ box-sizing:border-box; }
+    html, body { height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 700px at 50% 20%, #3b004a 0%, var(--bg1) 40%, #07000a 100%),
+                  linear-gradient(135deg, var(--bg2), var(--bg1));
+      overflow:hidden;
+    }
+
+    /* CRT-ish scanlines */
+    .scanlines::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.05) 0px,
+        rgba(255,255,255,0.05) 1px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0) 6px
+      );
+      mix-blend-mode: overlay;
+      opacity:.25;
+      z-index: 3;
+    }
+
+    /* Retro floating hearts background */
+    .hearts{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      overflow:hidden;
+    }
+    .heart{
+      position:absolute;
+      width:14px;
+      height:14px;
+      transform: rotate(45deg);
+      opacity:.85;
+      filter: drop-shadow(0 6px 10px var(--shadow));
+      image-rendering: pixelated;
+      animation: floatUp linear infinite;
+    }
+    .heart::before, .heart::after{
+      content:"";
+      position:absolute;
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background: currentColor;
+      left:-7px;
+      top:0;
+    }
+    .heart::after{
+      left:0;
+      top:-7px;
+    }
+    .heart{
+      background: currentColor;
+    }
+    @keyframes floatUp{
+      from { transform: translateY(110vh) rotate(45deg) scale(var(--s)); }
+      to   { transform: translateY(-20vh) rotate(45deg) scale(var(--s)); }
+    }
+
+    /* Main card */
+    .wrap{
+      position:relative;
+      z-index:2;
+      height:100%;
+      display:grid;
+      place-items:center;
+      padding:24px;
+    }
+    .card{
+      width:min(720px, 92vw);
+      background: rgba(10, 0, 14, .55);
+      border: 2px solid rgba(255,79,216,.35);
+      border-radius: 20px;
+      box-shadow: 0 25px 80px rgba(0,0,0,.55);
+      padding: 28px 22px 26px;
+      backdrop-filter: blur(10px);
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(400px 180px at 30% 20%, rgba(255,79,216,.25), transparent 60%),
+                  radial-gradient(400px 180px at 70% 80%, rgba(56,232,255,.18), transparent 60%);
+      z-index:-1;
+    }
+
+    .title{
+      font-size: clamp(26px, 5vw, 44px);
+      line-height:1.08;
+      margin: 6px 0 10px;
+      letter-spacing:.5px;
+      text-shadow: 0 0 18px rgba(255,79,216,.28), 0 0 32px rgba(56,232,255,.18);
+    }
+
+    .subtitle{
+      margin: 0 auto 18px;
+      max-width: 46ch;
+      opacity:.92;
+      font-size: 16px;
+    }
+
+    .pixel{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 12px;
+      opacity:.9;
+    }
+
+    .buttons{
+      display:flex;
+      gap:14px;
+      justify-content:center;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top: 18px;
+    }
+
+    button{
+      border:none;
+      cursor:pointer;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font-size: 16px;
+      font-weight: 700;
+      color:#0c0010;
+      box-shadow: 0 12px 28px rgba(0,0,0,.35);
+      transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+      user-select:none;
+    }
+    button:active{ transform: translateY(1px) scale(.99); }
+
+    .yes{
+      background: linear-gradient(135deg, var(--pink), var(--cyan));
+      filter: saturate(1.1);
+    }
+    .yes:hover{ transform: translateY(-1px) scale(1.02); }
+
+    .no{
+      background: linear-gradient(135deg, #ffb3e6, #ffd7f3);
+    }
+
+    .status{
+      margin-top: 14px;
+      min-height: 28px;
+      font-size: 15px;
+      opacity:.95;
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 10;
+      padding: 18px;
+    }
+    .modal{
+      width:min(520px, 92vw);
+      background: rgba(12,0,18,.86);
+      border: 2px solid rgba(255,79,216,.45);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 25px 80px rgba(0,0,0,.6);
+      backdrop-filter: blur(10px);
+      text-align:center;
+    }
+    .modal h2{
+      margin: 6px 0 10px;
+      font-size: 22px;
+      letter-spacing:.3px;
+      text-shadow: 0 0 18px rgba(255,79,216,.25);
+    }
+    .modal p{
+      margin: 0 0 14px;
+      opacity:.92;
+    }
+    .modal .row{
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .btnSecondary{
+      background: linear-gradient(135deg, #ffe1f6, #ffd1ef);
+    }
+    .btnPrimary{
+      background: linear-gradient(135deg, var(--hot), var(--pink));
+      color:#150016;
+    }
+
+    /* Confetti hearts (simple) */
+    .burst{
+      position: fixed;
+      inset:0;
+      pointer-events:none;
+      z-index: 9;
+      overflow:hidden;
+    }
+    .spark{
+      position:absolute;
+      width:10px; height:10px;
+      transform: rotate(45deg);
+      background: var(--pink);
+      opacity:.9;
+      animation: pop 900ms ease-out forwards;
+      filter: drop-shadow(0 10px 14px rgba(0,0,0,.3));
+    }
+    .spark::before,.spark::after{
+      content:"";
+      position:absolute;
+      width:10px;height:10px;
+      border-radius:50%;
+      background: inherit;
+      left:-5px; top:0;
+    }
+    .spark::after{ left:0; top:-5px; }
+
+    @keyframes pop{
+      0%{ transform: translate(0,0) rotate(45deg) scale(1); }
+      100%{ transform: translate(var(--dx), var(--dy)) rotate(45deg) scale(.8); opacity:0; }
+    }
+
+    /* Footer hint */
+    .hint{
+      margin-top: 10px;
+      font-size: 12px;
+      opacity:.75;
+    }
+  </style>
+</head>
+
+<body class="scanlines">
+  <div class="hearts" id="hearts"></div>
+  <div class="burst" id="burst"></div>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="pixel">💾 retro love.exe</div>
+      <h1 class="title" id="mainTitle">Will you be my Valentine? 💖</h1>
+      <p class="subtitle" id="subTitle">I know we’re miles apart, but you’re still my favorite person. 🌙</p>
+
+      <div class="buttons">
+        <button class="yes" id="yesBtn">YES 💘</button>
+        <button class="no" id="noBtn">NO 🙃</button>
+      </div>
+
+      <div class="status" id="status"></div>
+      <div class="hint pixel">Tip: Try clicking “NO” 😈</div>
+    </section>
+  </main>
+
+  <!-- "Are you sure?" modal -->
+  <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal">
+      <h2>Are you sure? 😭</h2>
+      <p>Like… *really* sure? The “NO” button is getting nervous.</p>
+      <div class="row">
+        <button class="btnPrimary" id="modalYes">Okay fine… YES 💞</button>
+        <button class="btnSecondary" id="modalNo">Still NO 😤</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Background hearts ---
+    const hearts = document.getElementById('hearts');
+    const heartColors = ['#ff4fd8', '#ff2a6d', '#38e8ff', '#ffd1ef'];
+
+    function spawnHeart() {
+      const h = document.createElement('div');
+      h.className = 'heart';
+
+      const left = Math.random() * 100;
+      const dur = 6 + Math.random() * 8;
+      const size = 0.8 + Math.random() * 2.2;
+
+      h.style.left = left + 'vw';
+      h.style.bottom = (-10 - Math.random() * 30) + 'vh';
+      h.style.animationDuration = dur + 's';
+      h.style.color = heartColors[(Math.random() * heartColors.length) | 0];
+      h.style.setProperty('--s', size.toFixed(2));
+
+      hearts.appendChild(h);
+
+      // remove after animation
+      setTimeout(() => h.remove(), (dur + 1) * 1000);
+    }
+
+    // density
+    for (let i = 0; i < 40; i++) {
+      setTimeout(spawnHeart, i * 120);
+    }
+    setInterval(spawnHeart, 220);
+
+    // --- Main interaction ---
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn  = document.getElementById('noBtn');
+    const status = document.getElementById('status');
+    const mainTitle = document.getElementById('mainTitle');
+    const subTitle = document.getElementById('subTitle');
+
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalYes = document.getElementById('modalYes');
+    const modalNo = document.getElementById('modalNo');
+
+    const burst = document.getElementById('burst');
+
+    let noClicks = 0;
+    let noScale = 1;
+
+    function openModal() {
+      modalOverlay.style.display = 'flex';
+      modalOverlay.setAttribute('aria-hidden', 'false');
+    }
+    function closeModal() {
+      modalOverlay.style.display = 'none';
+      modalOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    function heartBurst() {
+      const count = 26;
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement('div');
+        s.className = 'spark';
+
+        const angle = Math.random() * Math.PI * 2;
+        const power = 80 + Math.random() * 220;
+        const dx = Math.cos(angle) * power;
+        const dy = Math.sin(angle) * power;
+
+        s.style.left = (cx + (Math.random()*60 - 30)) + 'px';
+        s.style.top  = (cy + (Math.random()*40 - 20)) + 'px';
+        s.style.setProperty('--dx', dx.toFixed(0) + 'px');
+        s.style.setProperty('--dy', dy.toFixed(0) + 'px');
+
+        // randomize color a bit
+        const c = heartColors[(Math.random() * heartColors.length) | 0];
+        s.style.background = c;
+
+        burst.appendChild(s);
+        setTimeout(() => s.remove(), 1000);
+      }
+    }
+
+    function accept() {
+      heartBurst();
+      mainTitle.textContent = "YAY!! 💖💖💖";
+      subTitle.textContent = "Best Valentine ever. Screenshot this and send it to me 😌";
+      status.textContent = "✅ Valentine status: ACCEPTED. (Mission success.)";
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+      yesBtn.style.filter = 'grayscale(.1)';
+      noBtn.style.filter = 'grayscale(.5)';
+      closeModal();
+    }
+
+    yesBtn.addEventListener('click', accept);
+
+    noBtn.addEventListener('click', () => {
+      noClicks++;
+
+      // shrink the NO button each click
+      noScale *= 0.82;
+      if (noScale < 0.22) noScale = 0.22;
+      noBtn.style.transform = `scale(${noScale})`;
+
+      // make YES button feel "more tempting"
+      yesBtn.style.transform = `scale(${1 + Math.min(noClicks * 0.06, 0.5)})`;
+
+      // update status text + open modal after a couple clicks
+      const lines = [
+        "Wait… what? 😭",
+        "That’s illegal.",
+        "Please reconsider.",
+        "I’m gonna cry fr.",
+        "Okay… last chance…"
+      ];
+      status.textContent = lines[Math.min(noClicks - 1, lines.length - 1)];
+
+      if (noClicks >= 2) openModal();
+    });
+
+    modalYes.addEventListener('click', accept);
+
+    modalNo.addEventListener('click', () => {
+      // keep shrinking NO and keep asking
+      closeModal();
+      // make it harder to click NO by shrinking again
+      noScale *= 0.78;
+      if (noScale < 0.18) noScale = 0.18;
+      noBtn.style.transform = `scale(${noScale})`;
+      status.textContent = "😵‍💫 Okay but… are you *sure* sure?";
+      // reopen after a tiny delay for comedic effect
+      setTimeout(openModal, 450);
+    });
+
+    // close modal if click outside
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+
+    // escape key closes modal
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+</body>
+</html>
 
